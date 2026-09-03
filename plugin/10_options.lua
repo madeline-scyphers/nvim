@@ -8,8 +8,12 @@
 -- Here `vim.o.xxx = value` sets default value of option `xxx` to `value`.
 -- See `:h 'xxx'` (replace `xxx` with actual option name).
 --
--- Option values can be customized on per buffer or window basis.
+-- Option values can be customized on a per buffer or window basis.
 -- See 'after/ftplugin/' for common example.
+--
+-- Notes:
+-- - Some options (like `:h 'exrc'`) need to be set before this file is sourced.
+--   Set them directly at the bottom of the 'init.lua' file.
 
 -- stylua: ignore start
 -- The next part (until `-- stylua: ignore end`) is aligned manually for easier
@@ -24,10 +28,6 @@ vim.o.switchbuf   = 'usetab'       -- Use already opened buffers when switching
 vim.o.undofile    = true           -- Enable persistent undo
 
 vim.o.shada = "'100,<50,s10,:1000,/100,@100,h" -- Limit ShaDa file (for startup)
-
--- Enable all filetype plugins and syntax (if not enabled, for better startup)
-vim.cmd('filetype plugin indent on')
-if vim.fn.exists('syntax_on') ~= 1 then vim.cmd('syntax enable') end
 
 -- UI =========================================================================
 vim.o.breakindent    = true       -- Indent wrapped lines to match line start

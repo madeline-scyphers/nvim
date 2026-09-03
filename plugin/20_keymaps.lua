@@ -57,7 +57,7 @@ Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>b', desc = '+Buffer' },
   { mode = 'n', keys = '<Leader>e', desc = '+Explore/Edit' },
   { mode = 'n', keys = '<Leader>f', desc = '+Find' },
-  { mode = 'n', keys = '<Leader>d', desc = '+Git/Diffs' },
+  { mode = 'n', keys = '<Leader>g', desc = '+Git' },
   { mode = 'n', keys = '<Leader>l', desc = '+Language' },
   { mode = 'n', keys = '<Leader>m', desc = '+Map' },
   { mode = 'n', keys = '<Leader>o', desc = '+Other' },
@@ -65,7 +65,7 @@ Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>t', desc = '+Terminal' },
   { mode = 'n', keys = '<Leader>v', desc = '+Visits' },
 
-  { mode = 'x', keys = '<Leader>d', desc = '+Git/Diffs' },
+  { mode = 'x', keys = '<Leader>g', desc = '+Git' },
   { mode = 'x', keys = '<Leader>l', desc = '+Language' },
 }
 
@@ -167,18 +167,18 @@ nmap_leader('fV', '<Cmd>Pick visit_paths<CR>',                  'Visit paths (cw
 local git_log_cmd = [[Git log --pretty=format:\%h\ \%as\ │\ \%s --topo-order]]
 local git_log_buf_cmd = git_log_cmd .. ' --follow -- %'
 
-nmap_leader('da', '<Cmd>Git diff --cached<CR>',             'Added diff')
-nmap_leader('dA', '<Cmd>Git diff --cached -- %<CR>',        'Added diff buffer')
-nmap_leader('dc', '<Cmd>Git commit<CR>',                    'Commit')
-nmap_leader('dC', '<Cmd>Git commit --amend<CR>',            'Commit amend')
-nmap_leader('dd', '<Cmd>Git diff<CR>',                      'Diff')
-nmap_leader('dD', '<Cmd>Git diff -- %<CR>',                 'Diff buffer')
-nmap_leader('dl', '<Cmd>' .. git_log_cmd .. '<CR>',         'Log')
-nmap_leader('dL', '<Cmd>' .. git_log_buf_cmd .. '<CR>',     'Log buffer')
-nmap_leader('do', '<Cmd>lua MiniDiff.toggle_overlay()<CR>', 'Toggle overlay')
-nmap_leader('ds', '<Cmd>lua MiniGit.show_at_cursor()<CR>',  'Show at cursor')
+nmap_leader('ga', '<Cmd>Git diff --cached<CR>',             'Added diff')
+nmap_leader('gA', '<Cmd>Git diff --cached -- %<CR>',        'Added diff buffer')
+nmap_leader('gc', '<Cmd>Git commit<CR>',                    'Commit')
+nmap_leader('gC', '<Cmd>Git commit --amend<CR>',            'Commit amend')
+nmap_leader('gd', '<Cmd>Git diff<CR>',                      'Diff')
+nmap_leader('gD', '<Cmd>Git diff -- %<CR>',                 'Diff buffer')
+nmap_leader('gl', '<Cmd>' .. git_log_cmd .. '<CR>',         'Log')
+nmap_leader('gL', '<Cmd>' .. git_log_buf_cmd .. '<CR>',     'Log buffer')
+nmap_leader('go', '<Cmd>lua MiniDiff.toggle_overlay()<CR>', 'Toggle overlay')
+nmap_leader('gs', '<Cmd>lua MiniGit.show_at_cursor()<CR>',  'Show at cursor')
 
-xmap_leader('ds', '<Cmd>lua MiniGit.show_at_cursor()<CR>', 'Show at selection')
+xmap_leader('gs', '<Cmd>lua MiniGit.show_at_cursor()<CR>', 'Show at selection')
 
 -- l is for 'Language'. Common usage:
 -- - `<Leader>ld` - show more diagnostic details in a floating window
@@ -193,6 +193,7 @@ nmap_leader('ld', '<Cmd>lua vim.diagnostic.open_float()<CR>',   'Diagnostic popu
 nmap_leader('lf', '<Cmd>lua require("conform").format()<CR>',   'Format')
 nmap_leader('li', '<Cmd>lua vim.lsp.buf.implementation()<CR>',  'Implementation')
 nmap_leader('lh', '<Cmd>lua vim.lsp.buf.hover()<CR>',           'Hover')
+nmap_leader('ll', '<Cmd>lua vim.lsp.codelens.run()<CR>',        'Lens')
 nmap_leader('lr', '<Cmd>lua vim.lsp.buf.rename()<CR>',          'Rename')
 nmap_leader('lR', '<Cmd>lua vim.lsp.buf.references()<CR>',      'References')
 nmap_leader('ls', '<Cmd>lua vim.lsp.buf.definition()<CR>',      'Source definition')
@@ -218,12 +219,13 @@ nmap_leader('oz', '<Cmd>lua MiniMisc.zoom()<CR>',          'Zoom toggle')
 -- s is for 'Session'. Common usage:
 -- - `<Leader>sn` - start new session
 -- - `<Leader>sr` - read previously started session
--- - `<Leader>sd` - delete previously started session
-local session_new = 'MiniSessions.write(vim.fn.input("Session name: "))'
+-- - `<Leader>sR` - restart Neovim preserving current session
+local session_new = 'vim.ui.input({ prompt = "Session name: " }, MiniSessions.write)'
 
 nmap_leader('sd', '<Cmd>lua MiniSessions.select("delete")<CR>', 'Delete')
 nmap_leader('sn', '<Cmd>lua ' .. session_new .. '<CR>',         'New')
 nmap_leader('sr', '<Cmd>lua MiniSessions.select("read")<CR>',   'Read')
+nmap_leader('sR', '<Cmd>lua MiniSessions.restart()<CR>',        'Restart')
 nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>',          'Write current')
 
 -- t is for 'Terminal'
@@ -248,4 +250,15 @@ nmap_leader('vv', '<Cmd>lua MiniVisits.add_label("core")<CR>',    'Add "core" la
 nmap_leader('vV', '<Cmd>lua MiniVisits.remove_label("core")<CR>', 'Remove "core" label')
 nmap_leader('vl', '<Cmd>lua MiniVisits.add_label()<CR>',          'Add label')
 nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>',       'Remove label')
+
+
+-- make gD go to declaration, across project, following files
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(event)
+    local opts = { buffer = event.buf }
+
+    vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+  end,
+})
+
 -- stylua: ignore end

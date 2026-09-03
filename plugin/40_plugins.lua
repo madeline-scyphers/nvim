@@ -99,6 +99,9 @@ end)
 -- inside 'neovim/nvim-lspconfig' plugin.
 --
 -- Add it now if file (and not 'mini.starter') is shown after startup.
+--
+-- Troubleshooting:
+-- - Run `:checkhealth vim.lsp` to see potential issues.
 now_if_args(function()
   add({ 'https://github.com/neovim/nvim-lspconfig' })
 
@@ -170,7 +173,7 @@ local servers = {
   'basedpyright',
   'nextflow-language-server',
   'rust-analyzer',
-  'r-languageserver'
+  -- 'r-languageserver'
 } 
 
 now_if_args(function()
@@ -197,6 +200,8 @@ end)
 --   vim.cmd('color everforest')
 -- end)
 
+
+-- User Plugins ===============================================================
 
 
 now_if_args(function()

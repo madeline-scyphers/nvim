@@ -190,6 +190,51 @@ now_if_args(function()
   vim.lsp.config('*', { capabilities = MiniCompletion.get_lsp_capabilities() })
 end)
 
+-- Navigate and manipulate file system
+--
+-- Navigation is done using column view (Miller columns) to display nested
+-- directories, they are displayed in floating windows in top left corner.
+--
+-- Manipulate files and directories by editing text as regular buffers.
+--
+-- Example usage:
+-- - `<Leader>ed` - open current working directory
+-- - `<Leader>ef` - open directory of current file (needs to be present on disk)
+--
+-- Basic navigation:
+-- - `l` - go in entry at cursor: navigate into directory or open file
+-- - `h` - go out of focused directory
+-- - Navigate window as any regular buffer
+-- - Press `g?` inside explorer to see more mappings
+--
+-- Basic manipulation:
+-- - After any following action, press `=` in Normal mode to synchronize, read
+--   carefully about actions, press `y` or `<CR>` to confirm
+-- - New entry: press `o` and type its name; end with `/` to create directory
+-- - Rename: press `C` and type new name
+-- - Delete: type `dd`
+-- - Move/copy: type `dd`/`yy`, navigate to target directory, press `p`
+--
+-- See also:
+-- - `:h MiniFiles-navigation` - more details about how to navigate
+-- - `:h MiniFiles-manipulation` - more details about how to manipulate
+-- - `:h MiniFiles-examples` - examples of common setups
+now_if_args(function()
+  -- Enable directory/file preview
+  require('mini.files').setup({ windows = { preview = true } })
+
+  -- Add common bookmarks for every explorer. Example usage inside explorer:
+  -- - `'c` to navigate into your config directory
+  -- - `g?` to see available bookmarks
+  local add_marks = function()
+    MiniFiles.set_bookmark('c', vim.fn.stdpath('config'), { desc = 'Config' })
+    local vimpack_plugins = vim.fn.stdpath('data') .. '/site/pack/core/opt'
+    MiniFiles.set_bookmark('p', vimpack_plugins, { desc = 'Plugins' })
+    MiniFiles.set_bookmark('w', vim.fn.getcwd, { desc = 'Working directory' })
+  end
+  Config.new_autocmd('User', 'MiniFilesExplorerOpen', add_marks, 'Add bookmarks')
+end)
+
 -- Miscellaneous small but useful functions. Example usage:
 -- - `<Leader>oz` - toggle between "zoomed" and regular view of current buffer
 -- - `<Leader>or` - resize window to its "editable width"
@@ -377,7 +422,7 @@ later(function() require('mini.cmdline').setup() end)
 -- - `:h MiniColors.interactive()` - interactively tweak color scheme
 -- - `:h MiniColors-recipes` - common recipes to use during interactive tweaking
 -- - `:h MiniColors.convert()` - convert between color spaces
--- - `:h MiniColors-color-spaces` - list of supported color sapces
+-- - `:h MiniColors-color-spaces` - list of supported color spaces
 --
 -- It is not enabled by default because it is not really needed on a daily basis.
 -- Uncomment next line (use `gcc`) to enable.
@@ -416,51 +461,6 @@ later(function() require('mini.comment').setup() end)
 -- - `:h MiniDiff-diff-summary` - available summary information
 -- - `:h MiniDiff.gen_source` - available built-in sources
 later(function() require('mini.diff').setup() end)
-
--- Navigate and manipulate file system
---
--- Navigation is done using column view (Miller columns) to display nested
--- directories, they are displayed in floating windows in top left corner.
---
--- Manipulate files and directories by editing text as regular buffers.
---
--- Example usage:
--- - `<Leader>ed` - open current working directory
--- - `<Leader>ef` - open directory of current file (needs to be present on disk)
---
--- Basic navigation:
--- - `l` - go in entry at cursor: navigate into directory or open file
--- - `h` - go out of focused directory
--- - Navigate window as any regular buffer
--- - Press `g?` inside explorer to see more mappings
---
--- Basic manipulation:
--- - After any following action, press `=` in Normal mode to synchronize, read
---   carefully about actions, press `y` or `<CR>` to confirm
--- - New entry: press `o` and type its name; end with `/` to create directory
--- - Rename: press `C` and type new name
--- - Delete: type `dd`
--- - Move/copy: type `dd`/`yy`, navigate to target directory, press `p`
---
--- See also:
--- - `:h MiniFiles-navigation` - more details about how to navigate
--- - `:h MiniFiles-manipulation` - more details about how to manipulate
--- - `:h MiniFiles-examples` - examples of common setups
-later(function()
-  -- Enable directory/file preview
-  require('mini.files').setup({ windows = { preview = true } })
-
-  -- Add common bookmarks for every explorer. Example usage inside explorer:
-  -- - `'c` to navigate into your config directory
-  -- - `g?` to see available bookmarks
-  local add_marks = function()
-    MiniFiles.set_bookmark('c', vim.fn.stdpath('config'), { desc = 'Config' })
-    local vimpack_plugins = vim.fn.stdpath('data') .. '/site/pack/core/opt'
-    MiniFiles.set_bookmark('p', vimpack_plugins, { desc = 'Plugins' })
-    MiniFiles.set_bookmark('w', vim.fn.getcwd, { desc = 'Working directory' })
-  end
-  Config.new_autocmd('User', 'MiniFilesExplorerOpen', add_marks, 'Add bookmarks')
-end)
 
 -- Git integration for more straightforward Git actions based on Neovim's state.
 -- It is not meant as a fully featured Git client, only to provide helpers that
@@ -511,6 +511,31 @@ end)
 -- See also:
 -- - `:h MiniIndentscope.gen_animation` - available animation rules
 later(function() require('mini.indentscope').setup() end)
+
+-- Customizable user input. Improves how Neovim and plugins ask for input.
+-- By default shows a floating window with the input prompt as title. Window
+-- position depends on the input scope: at cursor, window or editor bottom left.
+--
+-- When asked for input:
+-- - Type it. Note: this is not a regular Insert mode, but rather a customizable
+--   and comprehensive Command-line mode emulation (it allows returning a value).
+-- - Press `<Tab>` to show completion, `<C-p>` - previous history entry.
+-- - Press `<CR>` to accept or `<Esc>` to cancel.
+--
+-- Example usage (usually works together with other plugins and modules):
+-- - `saiwf` and type a function name to wrap a word with 'mini.surround'
+-- - `<Leader>lr` and type a new value to use with LSP rename
+-- - `<Leader>fg` + `<C-o>` and type a custom filter glob for `grep_live` picker
+-- - `:h vim.ui.input()` - implemented with 'mini.input'.
+--   Like after typing `<Leader>sn` to create a session asks for its name.
+--
+-- See also:
+-- - `:h MiniInput.default_key()` - default special keys available when typing
+-- - `:h MiniInput-examples` - general customization examples
+-- - `:h MiniInput.gen_view` - bundled view customizations (adjust how floating
+--   window is shown or use statusline/tabline/winbar/virtual text)
+-- - `:h MiniInput-lifecycle` - details about how a custom mode emulation works
+later(function() require('mini.input').setup() end)
 
 -- Jump to next/previous single character. It implements "smarter `fFtT` keys"
 -- (see `:h f`) that work across multiple lines, start "jumping mode", and
